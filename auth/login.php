@@ -1,19 +1,19 @@
 <?php
-// Incluir a configuração de autenticação
 require_once '../config/auth.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Recuperar os dados do formulário
+    // VALIDAÇÃO DO TOKEN CSRF (NOVO)
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        die("Erro de segurança: Token CSRF inválido!");
+    }
+
     $email = $_POST['email'];
     $senha = $_POST['senha'];
 
-    // Chamar a função de login
     if (login($email, $senha)) {
-        // Se o login for bem-sucedido, redireciona para a página inicial
         header('Location: ../index.php');
         exit();
     } else {
-        // Se falhar, exibe uma mensagem de erro
         $erro = "E-mail ou senha inválidos!";
     }
 }
@@ -137,6 +137,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <h2>Login</h2>
         <?php if (isset($erro)) { echo "<p>$erro</p>"; } ?>
         <form method="POST" action="login.php">
+            <!-- CAMPO CSRF (NOVO) -->
+            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+            
             <label for="email">E-mail:</label>
             <input type="email" id="email" name="email" required>
 

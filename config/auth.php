@@ -1,7 +1,12 @@
 <?php
-// Verificar se a sessão já foi iniciada, para evitar o erro de múltiplas sessões
+// Verificar se a sessão já foi iniciada
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
+}
+
+// GERAR TOKEN CSRF (NOVO)
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
 // Incluir a configuração de conexão com o banco de dados
