@@ -13,6 +13,9 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// Configuração base do projeto
+$base_url = '/dashboard_vendas/';
+
 // Dados do usuário com fallback seguro
 $usuario = [
     'nome' => isset($_SESSION['usuario_nome']) ? htmlspecialchars($_SESSION['usuario_nome']) : 'Visitante',
@@ -21,13 +24,18 @@ $usuario = [
     'foto' => isset($_SESSION['usuario_foto']) ? htmlspecialchars($_SESSION['usuario_foto']) : 'default-profile.jpg'
 ];
 
-// Caminho base para as fotos (ajuste conforme sua estrutura)
-$fotoPath = '/dashboard_vendas/assets/img/profiles/' . $usuario['foto'];
-$fotoPadrao = '/dashboard_vendas/assets/img/profiles/default-profile.jpg';
+// Caminhos para fotos
+$fotoPath = $base_url . 'assets/img/profiles/' . $usuario['foto'];
+$fotoPadrao = $base_url . 'assets/img/profiles/default-profile.jpg';
 
-// Identifica a página atual
+// Identificação da página ativa
 $pagina_atual = basename($_SERVER['PHP_SELF']);
-$modulo_atual = explode('/', $_SERVER['REQUEST_URI'])[1] ?? '';
+$uri_segments = explode('/', $_SERVER['REQUEST_URI']);
+$modulo_atual = '';
+if (in_array('modules', $uri_segments)) {
+    $modulo_index = array_search('modules', $uri_segments) + 1;
+    $modulo_atual = $uri_segments[$modulo_index] ?? '';
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -43,7 +51,7 @@ $modulo_atual = explode('/', $_SERVER['REQUEST_URI'])[1] ?? '';
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <!-- CSS Local -->
-    <link href="/dashboard_vendas/assets/css/templates.css" rel="stylesheet">
+    <link href="<?= $base_url ?>assets/css/templates.css" rel="stylesheet">
     
     <style>
         :root {
@@ -134,6 +142,42 @@ $modulo_atual = explode('/', $_SERVER['REQUEST_URI'])[1] ?? '';
                 margin-bottom: 10px;
             }
         }
+        .navbar {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        box-shadow: var(--shadow);
+        padding: 0.5rem 1rem; /* Adicione padding para melhor espaçamento */
+    }
+
+    .navbar-brand {
+        margin-right: auto; /* Empurra a logo para a esquerda */
+    }
+
+    .navbar-nav.me-auto {
+        margin: 0 auto; /* Centraliza os itens do menu principal */
+        display: flex;
+        justify-content: center;
+        flex-grow: 1;
+    }
+
+    .navbar-nav:last-child {
+        margin-left: auto; /* Empurra o menu do usuário para a direita */
+    }
+
+    /* Ajuste para mobile */
+    @media (max-width: 992px) {
+        .navbar-collapse {
+            padding-top: 15px;
+        }
+        
+        .navbar-nav.me-auto {
+            margin: 0;
+            flex-direction: column;
+        }
+        
+        .navbar-nav:last-child {
+            margin-left: 0;
+        }
+    }
     </style>
 </head>
 <body>
@@ -141,7 +185,7 @@ $modulo_atual = explode('/', $_SERVER['REQUEST_URI'])[1] ?? '';
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
         <div class="container-fluid">
             <!-- Brand -->
-            <a class="navbar-brand" href="/dashboard_vendas/index.php">
+            <a class="navbar-brand" href="<?= $base_url ?>index.php">
                 <i class="fas fa-chart-line me-2"></i>
                 Dashboard Vendas
             </a>
@@ -156,101 +200,125 @@ $modulo_atual = explode('/', $_SERVER['REQUEST_URI'])[1] ?? '';
                 <ul class="navbar-nav me-auto">
                     <!-- Dashboard (todos) -->
                     <li class="nav-item">
-                        <a class="nav-link <?= ($pagina_atual == 'index.php') ? 'active' : '' ?>" href="/dashboard_vendas/index.php">
-                            <i class="fas fa-tachometer-alt"></i> Visão Geral
+                        <a class="nav-link <?= ($pagina_atual == 'index.php') ? 'active' : '' ?>" href="<?= $base_url ?>index.php">
+                            <i class="fas fa-tachometer-alt"></i> Geral
                         </a>
                     </li>
                     
                     <!-- Vendas (todos) -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle <?= ($modulo_atual == 'sales') ? 'active' : '' ?>" href="#" id="salesDropdown" role="button" data-bs-toggle="dropdown">
+                        <a class="nav-link dropdown-toggle <?= ($modulo_atual == 'sales') ? 'active' : '' ?>" 
+                           href="<?= $base_url ?>modules/sales/sales.php"
+                           id="salesDropdown" 
+                           role="button" 
+                           data-bs-toggle="dropdown"
+                           aria-expanded="false">
                             <i class="fas fa-cash-register"></i> Vendas
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="/dashboard_vendas/modules/sales/sales.php"><i class="fas fa-list me-2"></i>Listar Vendas</a></li>
-                            <li><a class="dropdown-item" href="/dashboard_vendas/modules/sales/sales_add.php"><i class="fas fa-plus-circle me-2"></i>Nova Venda</a></li>
+                            <li><a class="dropdown-item <?= (basename($_SERVER['PHP_SELF']) == 'sales.php' ? 'active' : '') ?>" href="<?= $base_url ?>modules/sales/sales.php"><i class="fas fa-list me-2"></i>Listar Vendas</a></li>
+                            <li><a class="dropdown-item <?= (basename($_SERVER['PHP_SELF']) == 'sales_add.php' ? 'active' : '') ?>" href="<?= $base_url ?>modules/sales/sales_add.php"><i class="fas fa-plus-circle me-2"></i>Nova Venda</a></li>
                             <?php if(in_array($usuario['nivel'], ['admin', 'gerente'])): ?>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="/dashboard_vendas/modules/sales/sales_report.php"><i class="fas fa-chart-bar me-2"></i>Relatórios</a></li>
+                            <li><a class="dropdown-item <?= (basename($_SERVER['PHP_SELF']) == 'sales_report.php' ? 'active' : '') ?>" href="<?= $base_url ?>modules/sales/sales_report.php"><i class="fas fa-chart-bar me-2"></i>Relatórios</a></li>
                             <?php endif; ?>
                         </ul>
                     </li>
                     
                     <!-- Produtos (admin e gerente) -->
                     <?php if(in_array($usuario['nivel'], ['admin', 'gerente'])): ?>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle <?= ($modulo_atual == 'products') ? 'active' : '' ?>" href="#" id="productsDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-boxes"></i> Produtos
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="/dashboard_vendas/modules/products/products.php"><i class="fas fa-list me-2"></i>Listar Produtos</a></li>
-                            <li><a class="dropdown-item" href="/dashboard_vendas/modules/products/product_add.php"><i class="fas fa-plus-circle me-2"></i>Adicionar Produto</a></li>
-                            <?php if($usuario['nivel'] === 'admin'): ?>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="/dashboard_vendas/modules/products/inventory.php"><i class="fas fa-warehouse me-2"></i>Estoque</a></li>
-                            <?php endif; ?>
-                        </ul>
-                    </li>
-                    <?php endif; ?>
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle <?= ($modulo_atual == 'products') ? 'active' : '' ?>" 
+       href="<?= $base_url ?>modules/products/products.php"
+       id="productsDropdown" 
+       role="button" 
+       data-bs-toggle="dropdown"
+       aria-expanded="false">
+        <i class="fas fa-boxes"></i> Produtos
+    </a>
+    <ul class="dropdown-menu">
+        <li>
+            <a class="dropdown-item <?= (basename($_SERVER['PHP_SELF']) == 'products.php' ? 'active' : '') ?>" 
+               href="<?= $base_url ?>modules/products/products.php">
+                <i class="fas fa-list me-2"></i> Listar Produtos
+            </a>
+        </li>
+        <li>
+            <a class="dropdown-item <?= (basename($_SERVER['PHP_SELF']) == 'product_add.php' ? 'active' : '') ?>" 
+               href="<?= $base_url ?>modules/products/product_add.php">
+                <i class="fas fa-plus-circle me-2"></i> Adicionar Produto
+            </a>
+        </li>
+        <?php if($usuario['nivel'] === 'admin'): ?>
+        <li><hr class="dropdown-divider"></li>
+        <li>
+            <a class="dropdown-item <?= (basename($_SERVER['PHP_SELF']) == 'inventory.php' ? 'active' : '') ?>" 
+               href="<?= $base_url ?>modules/products/inventory.php">
+                <i class="fas fa-warehouse me-2"></i> Gerenciar Estoque
+            </a>
+        </li>
+        <?php endif; ?>
+    </ul>
+</li>
+<?php endif; ?>
                     
                     <!-- Lojas (admin e gerente) -->
                     <?php if(in_array($usuario['nivel'], ['admin', 'gerente'])): ?>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle <?= ($modulo_atual == 'lojas') ? 'active' : '' ?>" href="#" id="storesDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-store"></i> Lojas
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="/dashboard_vendas/modules/lojas/lojas.php"><i class="fas fa-list me-2"></i>Listar Lojas</a></li>
-                            <?php if($usuario['nivel'] === 'admin'): ?>
-                            <li><a class="dropdown-item" href="/dashboard_vendas/modules/lojas/loja_add.php"><i class="fas fa-plus-circle me-2"></i>Adicionar Loja</a></li>
-                            <?php endif; ?>
-                        </ul>
-                    </li>
-                    <?php endif; ?>
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle <?= ($modulo_atual == 'lojas') ? 'active' : '' ?>" 
+       href="<?= $base_url ?>modules/lojas/lojas.php"
+       id="storesDropdown" 
+       role="button" 
+       data-bs-toggle="dropdown"
+       aria-expanded="false">
+        <i class="fas fa-store"></i> Lojas
+    </a>
+    <ul class="dropdown-menu">
+        <li><a class="dropdown-item <?= (basename($_SERVER['PHP_SELF']) == 'lojas.php' ? 'active' : '') ?>" href="<?= $base_url ?>modules/lojas/lojas.php"><i class="fas fa-list me-2"></i> Listar Lojas</a></li>
+        <?php if($usuario['nivel'] === 'admin'): ?>
+        <li><a class="dropdown-item <?= (basename($_SERVER['PHP_SELF']) == 'loja_add.php' ? 'active' : '') ?>" href="<?= $base_url ?>modules/lojas/loja_add.php"><i class="fas fa-plus-circle me-2"></i> Adicionar Loja</a>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item <?= (basename($_SERVER['PHP_SELF']) == 'lojas.php' ? 'active' : '') ?>" href="<?= $base_url ?>modules/metas/metas_list.php"><i class="fas fa-list me-2"></i> Metas</a></li>
+        <?php endif; ?>
+    </ul>
+</li>
+<?php endif; ?>
                     
                     <!-- Equipe (admin) -->
                     <?php if($usuario['nivel'] === 'admin'): ?>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle <?= ($modulo_atual == 'team') ? 'active' : '' ?>" href="#" id="teamDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-users"></i> Equipe
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="/dashboard_vendas/modules/team/vendedoras_list.php"><i class="fas fa-list me-2"></i>Vendedoras</a></li>
-                            <li><a class="dropdown-item" href="/dashboard_vendas/modules/team/vendedoras_add.php"><i class="fas fa-user-plus me-2"></i>Adicionar Vendedora</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="/dashboard_vendas/modules/usuarios/usuario_list.php"><i class="fas fa-user-cog me-2"></i>Usuários do Sistema</a></li>
-                        </ul>
-                    </li>
-                    <?php endif; ?>
-                    
-                    <!-- Metas (todos) -->
-                    <li class="nav-item">
-                        <a class="nav-link <?= ($modulo_atual == 'metas') ? 'active' : '' ?>" href="/dashboard_vendas/modules/metas/metas_list.php">
-                            <i class="fas fa-bullseye"></i> Metas
-                        </a>
-                    </li>
-                    
-                    <!-- Financeiro (admin e gerente) -->
-                    <?php if(in_array($usuario['nivel'], ['admin', 'gerente'])): ?>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle <?= ($modulo_atual == 'finance') ? 'active' : '' ?>" href="#" id="financeDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-money-bill-wave"></i> Financeiro
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="/dashboard_vendas/modules/finance/transactions.php"><i class="fas fa-exchange-alt me-2"></i>Transações</a></li>
-                            <li><a class="dropdown-item" href="/dashboard_vendas/modules/finance/reports.php"><i class="fas fa-file-invoice-dollar me-2"></i>Relatórios</a></li>
-                        </ul>
-                    </li>
-                    <?php endif; ?>
-                    
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle <?= ($modulo_atual == 'team') ? 'active' : '' ?>" 
+       href="<?= $base_url ?>modules/team/vendedoras_list.php"
+       id="teamDropdown" 
+       role="button" 
+       data-bs-toggle="dropdown"
+       aria-expanded="false">
+        <i class="fas fa-users"></i> Equipe
+    </a>
+    <ul class="dropdown-menu">
+        <li><a class="dropdown-item <?= (basename($_SERVER['PHP_SELF']) == 'vendedoras_list.php' ? 'active' : '') ?>" href="<?= $base_url ?>modules/team/vendedoras_list.php"><i class="fas fa-list me-2"></i>Vendedoras</a></li>
+        <li><a class="dropdown-item <?= (basename($_SERVER['PHP_SELF']) == 'vendedoras_add.php' ? 'active' : '') ?>" href="<?= $base_url ?>modules/team/vendedora_add.php"><i class="fas fa-user-plus me-2"></i>Adicionar Vendedora</a></li>
+    </ul>
+</li>
+<?php endif; ?>
+
                     <!-- Relatórios (admin e gerente) -->
                     <?php if(in_array($usuario['nivel'], ['admin', 'gerente'])): ?>
                     <li class="nav-item">
-                        <a class="nav-link <?= ($modulo_atual == 'reports') ? 'active' : '' ?>" href="/dashboard_vendas/modules/reports/">
+                        <a class="nav-link <?= ($modulo_atual == 'reports') ? 'active' : '' ?>" href="<?= $base_url ?>modules/reports/">
                             <i class="fas fa-chart-pie"></i> Relatórios
                         </a>
                     </li>
                     <?php endif; ?>
+                    
+                    <!-- Item de Usuários separado -->
+<?php if($usuario['nivel'] === 'admin'): ?>
+<li class="nav-item">
+    <a class="nav-link <?= ($modulo_atual == 'usuarios') ? 'active' : '' ?>" href="<?= $base_url ?>modules/usuarios/usuario_list.php">
+        <i class="fas fa-user-cog"></i> Usuários
+    </a>
+</li>
+<?php endif; ?>>
                 </ul>
                 
                 <!-- Menu do Usuário -->
@@ -269,7 +337,7 @@ $modulo_atual = explode('/', $_SERVER['REQUEST_URI'])[1] ?? '';
                             <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Configurações</a></li>
                             <?php endif; ?>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="/dashboard_vendas/auth/logout.php"><i class="fas fa-sign-out-alt me-2"></i>Sair</a></li>
+                            <li><a class="dropdown-item text-danger" href="<?= $base_url ?>auth/logout.php"><i class="fas fa-sign-out-alt me-2"></i>Sair</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -279,3 +347,6 @@ $modulo_atual = explode('/', $_SERVER['REQUEST_URI'])[1] ?? '';
     
     <!-- Container Principal -->
     <main class="container-fluid mt-4">
+        <!-- Seu conteúdo aqui -->
+    </main>
+ 

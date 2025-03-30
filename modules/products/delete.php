@@ -1,32 +1,35 @@
 <?php
-// Incluir o arquivo de autenticação e conexão
 require_once '../../config/auth.php';
 require_once '../../config/database.php';
 
-// Verificar se o usuário está logado
 if (!usuarioLogado()) {
     header('Location: ../../auth/login.php');
     exit();
 }
 
-// Verificar se o id foi passado pela URL
-if (isset($_GET['id'])) {
-    $id = $_GET['id'];
+if (!isset($_GET['id'])) {
+    header('Location: products.php?error=ID do produto não fornecido');
+    exit();
+}
 
-    // Preparar e executar a query de exclusão
-    $sql = "DELETE FROM produtos WHERE id = :id";
+$id = $_GET['id'];
+
+try {
+    // Marcar o produto como inativo em vez de excluir
+    $sql = "UPDATE produtos SET ativo = 0 WHERE id = :id";
     $stmt = $pdo->prepare($sql);
     $stmt->bindParam(':id', $id, PDO::PARAM_INT);
 
     if ($stmt->execute()) {
-        // Redirecionar para a lista de produtos após excluir com sucesso
-        header('Location: products.php');
-        exit();
+        // Redirecionar com mensagem de sucesso
+        header('Location: products.php?success=Produto desativado com sucesso');
     } else {
-        echo "Erro ao excluir o produto!";
+        header('Location: products.php?error=Erro ao desativar o produto');
     }
-} else {
-    // Caso o id não tenha sido passado
-    echo "Produto não encontrado!";
+    exit();
+    
+} catch (PDOException $e) {
+    header('Location: products.php?error=Erro no sistema: ' . urlencode($e->getMessage()));
+    exit();
 }
 ?>

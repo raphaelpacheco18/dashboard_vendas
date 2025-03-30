@@ -1,33 +1,52 @@
 <?php
-// Incluir o arquivo de autenticação
-require_once '../../config/auth.php';
+require_once '../../config/auth.php';  // Já inicia a sessão
 require_once '../../config/database.php';
 
-// Verificar se o usuário está logado
 if (!usuarioLogado()) {
     header('Location: ../../auth/login.php');
     exit();
 }
 
-// Verificar se o ID da vendedora foi passado via GET
-if (!isset($_GET['id'])) {
-    echo "Vendedora não encontrada!";
-    exit();
-}
-
-$id = $_GET['id'];
-
-// Preparar a consulta para excluir a vendedora
-$sql = "DELETE FROM vendedoras WHERE id = :id";
-$stmt = $pdo->prepare($sql);
-$stmt->bindParam(':id', $id);
-
-// Executar a consulta
-if ($stmt->execute()) {
-    // Se a exclusão for bem-sucedida, redirecionar para a lista de vendedoras
+if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
+    $_SESSION['error'] = "ID inválido";
     header('Location: vendedoras_list.php');
     exit();
-} else {
-    echo "Erro ao excluir vendedora.";
 }
+
+$id = (int)$_GET['id'];
+
+try {
+    // Verifica vendas associadas
+    $sql_check = "SELECT COUNT(*) as total FROM vendas WHERE vendedora_id = :id";
+    $stmt_check = $pdo->prepare($sql_check);
+    $stmt_check->bindParam(':id', $id, PDO::PARAM_INT);
+    $stmt_check->execute();
+    
+    if ($stmt_check->fetchColumn() > 0) {
+        $stmt_nome = $pdo->prepare("SELECT nome FROM vendedoras WHERE id = ?");
+        $stmt_nome->execute([$id]);
+        
+        $_SESSION['error'] = [
+            'type' => 'has_relations',
+            'vendedora_nome' => $stmt_nome->fetchColumn(),
+            'total_vendas' => $stmt_check->fetchColumn()
+        ];
+        header('Location: vendedoras_list.php');
+        exit();
+    }
+
+    // Exclusão segura
+    $stmt_delete = $pdo->prepare("DELETE FROM vendedoras WHERE id = ?");
+    if ($stmt_delete->execute([$id])) {
+        $_SESSION['success'] = "Vendedora excluída com sucesso!";
+    }
+} catch (PDOException $e) {
+    $_SESSION['error'] = [
+        'type' => 'system_error',
+        'message' => 'Erro no sistema: ' . $e->getMessage()
+    ];
+}
+
+header('Location: vendedoras_list.php');
+exit();
 ?>

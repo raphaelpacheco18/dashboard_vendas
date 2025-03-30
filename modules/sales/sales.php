@@ -88,11 +88,28 @@ try {
         padding-top: 20px;
     }
     
+    .main-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 15px;
+    }
+    
     .header-actions {
         display: flex;
         justify-content: space-between;
         align-items: center;
         margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    
+    .page-title {
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1.8rem;
+        color: #2c3e50;
     }
     
     .btn-nova-venda-topo {
@@ -129,18 +146,12 @@ try {
         box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         margin-bottom: 20px;
         padding: 20px;
-        max-width: 1200px;
-        margin-left: auto;
-        margin-right: auto;
     }
     
     .card {
         border-radius: 10px;
         box-shadow: 0 5px 15px rgba(0,0,0,0.05);
         border: none;
-        max-width: 1200px;
-        margin-left: auto;
-        margin-right: auto;
     }
     
     .table-responsive {
@@ -238,7 +249,10 @@ try {
         .header-actions {
             flex-direction: column;
             align-items: flex-start;
-            gap: 10px;
+        }
+        
+        .page-title {
+            margin-bottom: 10px;
         }
         
         .btn-nova-venda-topo {
@@ -268,10 +282,12 @@ try {
 <body>
     <?php include '../../templates/header.php'; ?>
     
-    <div class="container-fluid">
+    <div class="main-container">
         <!-- Área de Ações no Topo -->
         <div class="header-actions">
-            <h2><i class="bi bi-receipt"></i> Controle de Vendas</h2>
+            <h2 class="page-title">
+                <i class="bi bi-receipt"></i> Controle de Vendas
+            </h2>
             <div>
                 <a href="sales_add.php" class="btn btn-nova-venda-topo">
                     <i class="bi bi-plus-lg"></i> Nova Venda
@@ -279,7 +295,7 @@ try {
             </div>
         </div>
 
-        <!-- Card de Filtros - ATUALIZADO -->
+        <!-- Card de Filtros -->
         <div class="filter-card">
             <form method="get" action="sales.php">
                 <div class="filter-row">
@@ -354,47 +370,45 @@ try {
                                     <td><?= htmlspecialchars($venda['vendedora']) ?></td>
                                     <td class="text-end fw-bold">R$ <?= number_format($venda['valor_total'], 2, ',', '.') ?></td>
                                     <td>
-    <?php
-    if ($venda['tipo_pagamento'] === 'multipla' && !empty($venda['varios_pagamentos'])) {
-        // Extrai os pagamentos múltiplos do campo varios_pagamentos
-        $parts = explode('Múltiplo: ', $venda['varios_pagamentos']);
-        if (isset($parts[1])) {
-            $payments = explode(', ', $parts[1]);
-            foreach ($payments as $payment) {
-                $paymentParts = explode(':', $payment);
-                if (count($paymentParts) >= 2) {
-                    $type = trim($paymentParts[0]);
-                    $value = trim($paymentParts[1]);
-                    
-                    $badge_class = match(strtolower($type)) {
-                        'dinheiro' => 'badge-dinheiro',
-                        'cartão' => 'badge-cartao',
-                        'pix' => 'badge-pix',
-                        'débito' => 'badge-debito',
-                        default => 'badge-multiplo'
-                    };
-                    
-                    echo '<span class="badge-pagamento '.$badge_class.'" title="R$ '.htmlspecialchars($value).'">';
-                    echo htmlspecialchars($type);
-                    echo '</span>';
-                }
-            }
-        }
-    } else {
-        // Pagamento único
-        $badge_class = match(strtolower($venda['tipo_pagamento'])) {
-            'cartao' => 'badge-cartao',
-            'pix' => 'badge-pix',
-            'debito' => 'badge-debito',
-            'dinheiro' => 'badge-dinheiro',
-            default => 'badge-multiplo'
-        };
-        echo '<span class="badge-pagamento '.$badge_class.'">';
-        echo ucfirst($venda['tipo_pagamento']);
-        echo '</span>';
-    }
-    ?>
-</td>
+                                        <?php
+                                        if ($venda['tipo_pagamento'] === 'multipla' && !empty($venda['varios_pagamentos'])) {
+                                            $parts = explode('Múltiplo: ', $venda['varios_pagamentos']);
+                                            if (isset($parts[1])) {
+                                                $payments = explode(', ', $parts[1]);
+                                                foreach ($payments as $payment) {
+                                                    $paymentParts = explode(':', $payment);
+                                                    if (count($paymentParts) >= 2) {
+                                                        $type = trim($paymentParts[0]);
+                                                        $value = trim($paymentParts[1]);
+                                                        
+                                                        $badge_class = match(strtolower($type)) {
+                                                            'dinheiro' => 'badge-dinheiro',
+                                                            'cartão' => 'badge-cartao',
+                                                            'pix' => 'badge-pix',
+                                                            'débito' => 'badge-debito',
+                                                            default => 'badge-multiplo'
+                                                        };
+                                                        
+                                                        echo '<span class="badge-pagamento '.$badge_class.'" title="R$ '.htmlspecialchars($value).'">';
+                                                        echo htmlspecialchars($type);
+                                                        echo '</span>';
+                                                    }
+                                                }
+                                            }
+                                        } else {
+                                            $badge_class = match(strtolower($venda['tipo_pagamento'])) {
+                                                'cartao' => 'badge-cartao',
+                                                'pix' => 'badge-pix',
+                                                'debito' => 'badge-debito',
+                                                'dinheiro' => 'badge-dinheiro',
+                                                default => 'badge-multiplo'
+                                            };
+                                            echo '<span class="badge-pagamento '.$badge_class.'">';
+                                            echo ucfirst($venda['tipo_pagamento']);
+                                            echo '</span>';
+                                        }
+                                        ?>
+                                    </td>
                                     <td class="text-end">
                                         <div class="btn-group btn-group-sm">
                                             <a href="sales_edit.php?id=<?= $venda['id'] ?>" 
