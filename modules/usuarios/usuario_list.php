@@ -14,221 +14,270 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lista de Usuários</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
     :root {
         --primary-color: #3498db;
-        --secondary-color: #2ecc71;
-        --danger-color: #e74c3c;
-        --light-gray: #f4f6f7;
-        --dark-gray: #2c3e50;
-        --shadow-light: rgba(0, 0, 0, 0.1);
-        --shadow-dark: rgba(0, 0, 0, 0.2);
-        --border-radius: 8px;
-        --transition-duration: 0.3s;
-        --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        --success-color: #28a745;
+        --danger-color: #dc3545;
+        --warning-color: #fd7e14;
+        --info-color: #17a2b8;
+        --text-dark: #2c3e50;
+        --text-muted: #6c757d;
+        --border-color: #dee2e6;
+        --card-shadow: 0 5px 15px rgba(0,0,0,0.05);
     }
-
+    
     body {
-        background-color: var(--light-gray);
-        font-family: var(--font-family);
-        padding: 20px;
-        margin: 0;
+        background-color: #f8f9fa;
+        padding-top: 20px;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
     }
-
+    
     .main-container {
-        max-width: 1200px;
+        max-width: 1400px;
         margin: 0 auto;
+        padding: 0 15px;
     }
-
+    
     .header-actions {
         display: flex;
         justify-content: space-between;
         align-items: center;
         margin-bottom: 20px;
         flex-wrap: wrap;
+        gap: 15px;
     }
-
+    
     .page-title {
-        font-size: 2rem;
-        color: var(--dark-gray);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1.8rem;
+        color: var(--text-dark);
         font-weight: 600;
     }
-
+    
     .btn-action-primary {
         background: linear-gradient(135deg, var(--primary-color), var(--info-color));
-        color: black;
-        padding: 10px 20px;
-        font-weight: 600;
         border: none;
-        border-radius: var(--border-radius);
-        box-shadow: 0 4px 8px var(--shadow-light);
-        cursor: pointer;
-        display: inline-flex;
+        padding: 10px 20px;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+        display: flex;
         align-items: center;
-        transition: background-color var(--transition-duration), transform var(--transition-duration);
+        color: white !important;
+        border-radius: 5px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        text-decoration: none;
     }
-
+    
     .btn-action-primary:hover {
-        background-color: var(--secondary-color);
+        background: linear-gradient(135deg, var(--info-color), var(--primary-color));
         transform: translateY(-2px);
-        box-shadow: 0 6px 10px var(--shadow-dark);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        color: white !important;
     }
-
-    .btn-action-primary i {
-        margin-right: 8px;
+    
+    .card {
+        border-radius: 10px;
+        box-shadow: var(--card-shadow);
+        border: none;
+        margin-bottom: 20px;
     }
-
-    /* Tabela */
+    
     .table-responsive {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
     }
-
-    .table {
-        width: 100%;
-        margin-bottom: 20px;
-        border-collapse: collapse;
-        border-radius: var(--border-radius);
-        box-shadow: 0 4px 10px var(--shadow-light);
-        background-color: white;
-    }
-
+    
     .table thead {
         background-color: var(--primary-color);
         color: white;
         position: sticky;
         top: 0;
     }
-
-    .table th, .table td {
-        padding: 12px 15px;
-        text-align: left;
-        font-size: 1rem;
-        color: var(--dark-gray);
-    }
-
+    
     .table th {
-        font-weight: 600;
+        font-weight: 500;
+        padding: 12px 15px !important;
+        white-space: nowrap;
     }
-
+    
     .table td {
-        font-weight: 400;
+        padding: 10px 15px !important;
+        vertical-align: middle;
     }
-
+    
     .table-hover tbody tr:hover {
-        background-color: rgba(52, 152, 219, 0.1);
+        background-color: rgba(52, 152, 219, 0.05);
     }
-
+    
+    .btn-group-sm > .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+        border-radius: 0.25rem;
+    }
+    
+    .btn-outline-primary {
+        color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+    
+    .btn-outline-primary:hover {
+        background-color: var(--primary-color);
+        color: white;
+    }
+    
+    .btn-outline-danger {
+        color: var(--danger-color);
+        border-color: var(--danger-color);
+    }
+    
+    .btn-outline-danger:hover {
+        background-color: var(--danger-color);
+        color: white;
+    }
+    
     .badge-ativo {
-        background-color: #28a745;
+        background-color: var(--success-color);
         color: white;
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 0.9rem;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
     }
-
+    
     .badge-inativo {
-        background-color: #e74c3c;
+        background-color: var(--danger-color);
         color: white;
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 0.9rem;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
     }
-
-    /* Responsividade */
+    
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    
+    @media (max-width: 1200px) {
+        .responsive-table td:nth-child(5),
+        .responsive-table th:nth-child(5),
+        .responsive-table td:nth-child(7),
+        .responsive-table th:nth-child(7) {
+            display: none;
+        }
+    }
+    
     @media (max-width: 992px) {
-        .table th, .table td {
-            padding: 10px;
-        }
-
-        .btn-action-primary {
-            width: 100%;
-            margin-top: 10px;
+        .responsive-table td:nth-child(4),
+        .responsive-table th:nth-child(4),
+        .responsive-table td:nth-child(6),
+        .responsive-table th:nth-child(6) {
+            display: none;
         }
     }
-
+    
     @media (max-width: 768px) {
-        .page-title {
-            font-size: 1.6rem;
+        .header-actions {
+            flex-direction: column;
+            align-items: flex-start;
         }
-
-        .btn-action-primary {
-            width: 100%;
-            justify-content: center;
-        }
-
-        .table-responsive {
-            overflow-x: auto;
+        
+        .responsive-table td:nth-child(3),
+        .responsive-table th:nth-child(3) {
+            display: none;
         }
     }
     </style>
 </head>
 <body>
-
-<?php
-    // Incluir o cabeçalho
-    include('../../templates/header.php');  // Verifique o caminho
-?>
-
-<main class="main-container">
-    <div class="header-actions">
-        <div class="page-title">
-            <i class="fas fa-users"></i>
-            Lista de Usuários
+    <?php include '../../templates/header.php'; ?>
+    
+    <div class="main-container">
+        <div class="header-actions">
+            <h2 class="page-title">
+                <i class="bi bi-people-fill"></i> Lista de Usuários
+            </h2>
+            <div>
+                <a href="usuario_add.php" class="btn btn-action-primary">
+                    <i class="bi bi-plus-lg"></i> Novo Usuário
+                </a>
+            </div>
         </div>
-        <a href="usuario_add.php" class="btn-action-primary">
-            <i class="fas fa-plus"></i> Adicionar Novo Usuário
-        </a>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover responsive-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nome</th>
+                                <th>Email</th>
+                                <th>Nível de Acesso</th>
+                                <th>Foto</th>
+                                <th>Status</th>
+                                <th class="text-end">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (empty($usuarios)): ?>
+                                <tr>
+                                    <td colspan="7" class="text-center py-4 text-muted">
+                                        Nenhum usuário cadastrado
+                                    </td>
+                                </tr>
+                            <?php else: ?>
+                                <?php foreach ($usuarios as $usuario): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($usuario['id']) ?></td>
+                                    <td><?= htmlspecialchars($usuario['nome']) ?></td>
+                                    <td><?= htmlspecialchars($usuario['email']) ?></td>
+                                    <td><?= htmlspecialchars(ucfirst($usuario['nivel_acesso'])) ?></td>
+                                    <td>
+                                        <?php 
+                                            $foto = $usuario['foto'] ? 'uploads/'.$usuario['foto'] : 'uploads/default.jpg';
+                                        ?>
+                                        <img src="<?= htmlspecialchars($foto) ?>" alt="Foto do usuário" class="user-avatar">
+                                    </td>
+                                    <td>
+                                        <span class="<?= $usuario['ativo'] ? 'badge-ativo' : 'badge-inativo' ?>">
+                                            <?= $usuario['ativo'] ? 'Ativo' : 'Inativo' ?>
+                                        </span>
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="usuario_edit.php?id=<?= $usuario['id'] ?>" 
+                                               class="btn btn-outline-primary"
+                                               title="Editar">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a href="usuario_delete.php?id=<?= $usuario['id'] ?>" 
+                                               class="btn btn-outline-danger"
+                                               title="Excluir"
+                                               onclick="return confirm('Tem certeza que deseja excluir este usuário?');">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="table-responsive">
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nome</th>
-                    <th>Email</th>
-                    <th>Nível de Acesso</th>
-                    <th>Foto</th>
-                    <th>Ativo</th>
-                    <th>Ações</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($usuarios as $usuario): ?>
-                    <tr>
-                        <td><?= $usuario['id'] ?></td>
-                        <td><?= $usuario['nome'] ?></td>
-                        <td><?= $usuario['email'] ?></td>
-                        <td><?= ucfirst($usuario['nivel_acesso']) ?></td>
-                        <td>
-                            <?php 
-                                // Verificar se o campo foto está vazio ou se o arquivo existe
-                                $foto = $usuario['foto'] ? 'uploads/'.$usuario['foto'] : 'uploads/default.jpg';
-                            ?>
-                            <img src="<?= $foto ?>" alt="Foto de <?= $usuario['nome'] ?>" width="40" height="40" style="border-radius: 50%;">
-                        </td>
-                        <td>
-                            <span class="badge <?= $usuario['ativo'] ? 'badge-ativo' : 'badge-inativo' ?>">
-                                <?= $usuario['ativo'] ? 'Ativo' : 'Desativado' ?>
-                            </span>
-                        </td>
-                        <td>
-                            <a href="usuario_edit.php?id=<?= $usuario['id'] ?>" class="btn btn-primary btn-sm">Editar</a>
-                            <a href="usuario_delete.php?id=<?= $usuario['id'] ?>" class="btn btn-danger btn-sm">Excluir</a>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-    </div>
-</main>
-
-<?php
-    // Incluir o rodapé
-    include('../../templates/footer.php');  // Verifique o caminho
-?>
-
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
