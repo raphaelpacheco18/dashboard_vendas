@@ -1,14 +1,12 @@
 <?php
-require_once '../../config/auth.php';
-require_once '../../config/database.php';
+// Iniciar a sessão
+session_start();
 
-if (!usuarioLogado()) {
-    header('Location: ../../auth/login.php');
-    exit();
-}
+// Incluir o arquivo de conexão
+require_once '../../config/database.php';  // Caminho atualizado para a pasta config
 
-$sql = "SELECT id, nome, email, nivel_acesso, ativo, foto FROM usuarios";
-$stmt = $pdo->query($sql);
+// Consultar todos os usuários
+$stmt = $pdo->query("SELECT * FROM usuarios");
 $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
@@ -16,222 +14,221 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Usuários - Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+    <title>Lista de Usuários</title>
     <style>
     :root {
         --primary-color: #3498db;
-        --success-color: #28a745;
-        --danger-color: #dc3545;
-        --warning-color: #fd7e14;
-        --info-color: #17a2b8;
-        --btn-gradient-start: #27ae60;
-        --btn-gradient-end: #2ecc71;
-        --btn-gradient-hover-start: #219653;
-        --btn-gradient-hover-end: #27ae60;
+        --secondary-color: #2ecc71;
+        --danger-color: #e74c3c;
+        --light-gray: #f4f6f7;
+        --dark-gray: #2c3e50;
+        --shadow-light: rgba(0, 0, 0, 0.1);
+        --shadow-dark: rgba(0, 0, 0, 0.2);
+        --border-radius: 8px;
+        --transition-duration: 0.3s;
+        --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-    
+
     body {
-        background-color: #f8f9fa;
-        padding-top: 20px;
+        background-color: var(--light-gray);
+        font-family: var(--font-family);
+        padding: 20px;
+        margin: 0;
     }
-    
+
     .main-container {
         max-width: 1200px;
         margin: 0 auto;
-        padding: 0 15px;
     }
-    
+
     .header-actions {
         display: flex;
         justify-content: space-between;
         align-items: center;
         margin-bottom: 20px;
         flex-wrap: wrap;
-        gap: 15px;
     }
-    
+
     .page-title {
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 1.8rem;
-        color: #2c3e50;
+        font-size: 2rem;
+        color: var(--dark-gray);
+        font-weight: 600;
     }
-    
-    .btn-novo-usuario {
-        background: linear-gradient(135deg, var(--btn-gradient-start), var(--btn-gradient-end));
-        border: none;
+
+    .btn-action-primary {
+        background: linear-gradient(135deg, var(--primary-color), var(--info-color));
+        color: black;
         padding: 10px 20px;
-        font-weight: 500;
-        letter-spacing: 0.5px;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        color: white !important;
-        border-radius: 5px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        text-decoration: none;
-    }
-    
-    .btn-novo-usuario:hover {
-        background: linear-gradient(135deg, var(--btn-gradient-hover-start), var(--btn-gradient-hover-end));
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-        color: white !important;
-    }
-    
-    .btn-novo-usuario i {
-        margin-right: 8px;
-        font-size: 1.1em;
-    }
-    
-    .card {
-        border-radius: 10px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        font-weight: 600;
         border: none;
+        border-radius: var(--border-radius);
+        box-shadow: 0 4px 8px var(--shadow-light);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        transition: background-color var(--transition-duration), transform var(--transition-duration);
     }
-    
+
+    .btn-action-primary:hover {
+        background-color: var(--secondary-color);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 10px var(--shadow-dark);
+    }
+
+    .btn-action-primary i {
+        margin-right: 8px;
+    }
+
+    /* Tabela */
     .table-responsive {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
     }
-    
+
+    .table {
+        width: 100%;
+        margin-bottom: 20px;
+        border-collapse: collapse;
+        border-radius: var(--border-radius);
+        box-shadow: 0 4px 10px var(--shadow-light);
+        background-color: white;
+    }
+
     .table thead {
         background-color: var(--primary-color);
         color: white;
         position: sticky;
         top: 0;
     }
-    
-    .badge-status {
-        font-size: 0.75rem;
-        padding: 5px 10px;
+
+    .table th, .table td {
+        padding: 12px 15px;
+        text-align: left;
+        font-size: 1rem;
+        color: var(--dark-gray);
+    }
+
+    .table th {
+        font-weight: 600;
+    }
+
+    .table td {
+        font-weight: 400;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: rgba(52, 152, 219, 0.1);
+    }
+
+    .badge-ativo {
+        background-color: #28a745;
+        color: white;
+        padding: 6px 12px;
         border-radius: 20px;
-        font-weight: 500;
+        font-size: 0.9rem;
     }
-    
-    .badge-ativo { background-color: var(--success-color); color: white; }
-    .badge-inativo { background-color: var(--danger-color); color: white; }
-    
-    .profile-img-table {
-        width: 40px;
-        height: 40px;
-        object-fit: cover;
-        border: 2px solid rgba(0,0,0,0.1);
+
+    .badge-inativo {
+        background-color: #e74c3c;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.9rem;
     }
-    
-    /* RESPONSIVIDADE */
+
+    /* Responsividade */
+    @media (max-width: 992px) {
+        .table th, .table td {
+            padding: 10px;
+        }
+
+        .btn-action-primary {
+            width: 100%;
+            margin-top: 10px;
+        }
+    }
+
     @media (max-width: 768px) {
-        .header-actions {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-        
         .page-title {
-            margin-bottom: 10px;
-            font-size: 1.5rem;
+            font-size: 1.6rem;
         }
-        
-        .btn-novo-usuario {
+
+        .btn-action-primary {
             width: 100%;
             justify-content: center;
         }
-        
-        td:nth-child(1), th:nth-child(1), /* ID */
-        td:nth-child(5), th:nth-child(5) { /* Nível */
-            display: none;
+
+        .table-responsive {
+            overflow-x: auto;
         }
     }
     </style>
 </head>
 <body>
-    <?php include '../../templates/header.php'; ?>
-    
-    <div class="main-container">
-        <!-- Área de Ações no Topo -->
-        <div class="header-actions">
-            <h2 class="page-title">
-                <i class="bi bi-people-fill"></i> Gerenciamento de Usuários
-            </h2>
-            <div>
-                <a href="usuario_add.php" class="btn btn-novo-usuario">
-                    <i class="bi bi-plus-lg"></i> Novo Usuário
-                </a>
-            </div>
-        </div>
 
-        <!-- Card de Resultados -->
-        <div class="card border-0 shadow">
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Foto</th>
-                                <th>Nome</th>
-                                <th>Email</th>
-                                <th>Nível</th>
-                                <th>Status</th>
-                                <th class="text-end">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php if (empty($usuarios)): ?>
-                                <tr>
-                                    <td colspan="7" class="text-center py-4 text-muted">
-                                        Nenhum usuário cadastrado
-                                    </td>
-                                </tr>
-                            <?php else: ?>
-                                <?php foreach ($usuarios as $user): ?>
-                                <tr>
-                                    <td><?= $user['id'] ?></td>
-                                    <td>
-                                        <img src="../../assets/img/profiles/<?= $user['foto'] ?: 'default-profile.jpg' ?>" 
-                                             class="profile-img-table rounded-circle"
-                                             alt="Foto de <?= htmlspecialchars($user['nome']) ?>"
-                                             onerror="this.onerror=null;this.src='../../assets/img/profiles/default-profile.jpg'">
-                                    </td>
-                                    <td><?= htmlspecialchars($user['nome']) ?></td>
-                                    <td><?= htmlspecialchars($user['email']) ?></td>
-                                    <td><?= ucfirst($user['nivel_acesso']) ?></td>
-                                    <td>
-                                        <span class="badge-status <?= $user['ativo'] ? 'badge-ativo' : 'badge-inativo' ?>">
-                                            <?= $user['ativo'] ? 'Ativo' : 'Inativo' ?>
-                                        </span>
-                                    </td>
-                                    <td class="text-end">
-                                        <div class="btn-group btn-group-sm">
-                                            <a href="usuario_edit.php?id=<?= $user['id'] ?>" 
-                                               class="btn btn-outline-primary"
-                                               title="Editar">
-                                                <i class="bi bi-pencil"></i>
-                                            </a>
-                                            <a href="usuario_delete.php?id=<?= $user['id'] ?>" 
-                                               class="btn btn-outline-danger"
-                                               title="Excluir"
-                                               onclick="return confirm('Tem certeza que deseja excluir este usuário?');">
-                                                <i class="bi bi-trash"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+<?php
+    // Incluir o cabeçalho
+    include('../../templates/header.php');  // Verifique o caminho
+?>
+
+<main class="main-container">
+    <div class="header-actions">
+        <div class="page-title">
+            <i class="fas fa-users"></i>
+            Lista de Usuários
         </div>
+        <a href="usuario_add.php" class="btn-action-primary">
+            <i class="fas fa-plus"></i> Adicionar Novo Usuário
+        </a>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Email</th>
+                    <th>Nível de Acesso</th>
+                    <th>Foto</th>
+                    <th>Ativo</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($usuarios as $usuario): ?>
+                    <tr>
+                        <td><?= $usuario['id'] ?></td>
+                        <td><?= $usuario['nome'] ?></td>
+                        <td><?= $usuario['email'] ?></td>
+                        <td><?= ucfirst($usuario['nivel_acesso']) ?></td>
+                        <td>
+                            <?php 
+                                // Verificar se o campo foto está vazio ou se o arquivo existe
+                                $foto = $usuario['foto'] ? 'uploads/'.$usuario['foto'] : 'uploads/default.jpg';
+                            ?>
+                            <img src="<?= $foto ?>" alt="Foto de <?= $usuario['nome'] ?>" width="40" height="40" style="border-radius: 50%;">
+                        </td>
+                        <td>
+                            <span class="badge <?= $usuario['ativo'] ? 'badge-ativo' : 'badge-inativo' ?>">
+                                <?= $usuario['ativo'] ? 'Ativo' : 'Desativado' ?>
+                            </span>
+                        </td>
+                        <td>
+                            <a href="usuario_edit.php?id=<?= $usuario['id'] ?>" class="btn btn-primary btn-sm">Editar</a>
+                            <a href="usuario_delete.php?id=<?= $usuario['id'] ?>" class="btn btn-danger btn-sm">Excluir</a>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<?php
+    // Incluir o rodapé
+    include('../../templates/footer.php');  // Verifique o caminho
+?>
+
 </body>
 </html>

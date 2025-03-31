@@ -2,53 +2,43 @@
 require_once '../../config/auth.php';
 require_once '../../config/database.php';
 
+// Verifica se o usuário está logado
 if (!usuarioLogado()) {
     header('Location: ../../auth/login.php');
     exit();
 }
 
+// Processa o formulário de adição de usuário
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // Coleta e sanitiza os dados do formulário
+    $dados = [
+        'nome' => filter_input(INPUT_POST, 'nome', FILTER_SANITIZE_STRING),
+        'email' => filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL),
+        'senha' => password_hash(filter_input(INPUT_POST, 'senha', FILTER_SANITIZE_STRING), PASSWORD_DEFAULT),
+        'nivel_acesso' => filter_input(INPUT_POST, 'nivel_acesso', FILTER_SANITIZE_STRING),
+        'ativo' => filter_input(INPUT_POST, 'ativo', FILTER_VALIDATE_INT) ?: 1, // 1 por padrão se não for fornecido
+        'foto' => 'default-profile.jpg' // Foto padrão
+    ];
+
+    // Tenta inserir o novo usuário no banco de dados
     try {
-        $nome = filter_input(INPUT_POST, 'nome', FILTER_SANITIZE_STRING);
-        $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
-        $senha = password_hash($_POST['senha'], PASSWORD_DEFAULT);
-        $nivel = filter_input(INPUT_POST, 'nivel_acesso', FILTER_SANITIZE_STRING);
-        $foto = 'default-profile.jpg';
-
-        if (isset($_FILES['foto']) && $_FILES['foto']['error'] == UPLOAD_ERR_OK) {
-            $ext = strtolower(pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION));
-            $extensoesPermitidas = ['jpg', 'jpeg', 'png'];
-            
-            if (in_array($ext, $extensoesPermitidas)) {
-                $nomeUnico = 'user_' . time() . '_' . uniqid() . '.' . $ext;
-                $destino = '../../assets/img/profiles/' . $nomeUnico;
-                
-                if (move_uploaded_file($_FILES['foto']['tmp_name'], $destino)) {
-                    $foto = $nomeUnico;
-                }
-            }
-        }
-
-        $sql = "INSERT INTO usuarios (nome, email, senha, nivel_acesso, ativo, data_criacao, foto) 
-                VALUES (:nome, :email, :senha, :nivel, 1, NOW(), :foto)";
-        
+        $sql = "INSERT INTO usuarios (nome, email, senha, nivel_acesso, ativo, foto) 
+                VALUES (:nome, :email, :senha, :nivel_acesso, :ativo, :foto)";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
-            'nome' => $nome,
-            'email' => $email,
-            'senha' => $senha,
-            'nivel' => $nivel,
-            'foto' => $foto
+            'nome' => $dados['nome'],
+            'email' => $dados['email'],
+            'senha' => $dados['senha'],
+            'nivel_acesso' => $dados['nivel_acesso'],
+            'ativo' => $dados['ativo'],
+            'foto' => $dados['foto']
         ]);
-        
+
+        $_SESSION['sucesso'] = 'Usuário adicionado com sucesso!';
         header('Location: usuario_list.php');
         exit();
-        
     } catch (PDOException $e) {
-        error_log('Erro ao cadastrar usuário: ' . $e->getMessage());
-        $_SESSION['erro'] = 'Erro ao cadastrar usuário. Por favor, tente novamente.';
-        header('Location: usuario_add.php');
-        exit();
+        $_SESSION['erro'] = 'Erro ao adicionar usuário: ' . $e->getMessage();
     }
 }
 ?>
@@ -68,119 +58,150 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         --danger-color: #dc3545;
         --warning-color: #fd7e14;
         --info-color: #17a2b8;
-        --btn-gradient-start: #27ae60;
-        --btn-gradient-end: #2ecc71;
-        --btn-gradient-hover-start: #219653;
-        --btn-gradient-hover-end: #27ae60;
+        --text-dark: #2c3e50;
+        --text-muted: #6c757d;
+        --border-color: #dee2e6;
+        --card-shadow: 0 5px 15px rgba(0,0,0,0.05);
     }
-    
+
     body {
         background-color: #f8f9fa;
         padding-top: 20px;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
     }
-    
+
     .main-container {
-        max-width: 1200px;
+        max-width: 800px;
         margin: 0 auto;
         padding: 0 15px;
     }
-    
-    .header-actions {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+
+    .card {
+        border-radius: 10px;
+        box-shadow: var(--card-shadow);
+        border: none;
         margin-bottom: 20px;
+        padding: 20px;
+        background-color: white;
+    }
+
+    .page-title {
+        margin-bottom: 20px;
+        font-size: 2rem;
+        color: var(--text-dark);
+        font-weight: 600;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        font-weight: 500;
+        color: var(--text-dark);
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control {
+        border-radius: 0.5rem;
+        border: 1px solid var(--border-color);
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        width: 100%;
+        background-color: #f8f9fa;
+        transition: border-color 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+    }
+
+    .btn-primary {
+        background-color: var(--primary-color);
+        border: none;
+        padding: 10px 20px;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+        border-radius: 0.5rem;
+        color: white;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        background-color: #2980b9;
+    }
+
+    .btn-secondary {
+        background-color: #ccc;
+        border: none;
+        padding: 10px 20px;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+        border-radius: 0.5rem;
+        color: var(--text-dark);
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+        background-color: #b6b6b6;
+    }
+
+    .form-row {
+        display: flex;
         flex-wrap: wrap;
         gap: 15px;
     }
-    
-    .page-title {
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 1.8rem;
-        color: #2c3e50;
+
+    .form-row .form-group {
+        flex: 1;
+        min-width: 250px;
     }
-    
-    .card-form {
-        border-radius: 10px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        border: none;
-        padding: 25px;
-    }
-    
-    .form-label {
-        font-weight: 500;
-        margin-bottom: 5px;
-    }
-    
-    .form-control, .form-select {
-        border-radius: 8px;
-        padding: 10px 15px;
-        border: 1px solid #ced4da;
-        transition: all 0.3s ease;
-    }
-    
-    .form-control:focus, .form-select:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.25);
-    }
-    
-    .btn-primary {
-        background: linear-gradient(135deg, var(--primary-color), #2c3e50);
-        border: none;
-        padding: 10px 25px;
-        font-weight: 500;
-        transition: all 0.3s ease;
-    }
-    
-    .btn-primary:hover {
-        background: linear-gradient(135deg, #2c3e50, var(--primary-color));
-        transform: translateY(-2px);
-    }
-    
-    .btn-secondary {
-        background: #6c757d;
-        border: none;
-        padding: 10px 25px;
-        font-weight: 500;
-    }
-    
+
     .alert {
-        border-radius: 8px;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
     }
-    
-    /* Preview da foto */
-    .photo-preview {
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 3px solid #e9ecef;
-        display: none;
-        margin: 15px auto;
+
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
     }
-    
+
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .alert-warning {
+        background-color: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeeba;
+    }
+
+    /* Responsividade */
     @media (max-width: 768px) {
-        .page-title {
-            font-size: 1.5rem;
-        }
-        
-        .card-form {
-            padding: 20px 15px;
+        .form-row {
+            flex-direction: column;
         }
     }
-    </style>
+</style>
+
 </head>
 <body>
     <?php include '../../templates/header.php'; ?>
     
     <div class="main-container">
-        <!-- Área de Ações no Topo -->
         <div class="header-actions">
             <h2 class="page-title">
-                <i class="bi bi-person-plus"></i> Adicionar Usuário
+                <i class="bi bi-person-plus"></i> Adicionar Novo Usuário
             </h2>
             <div>
                 <a href="usuario_list.php" class="btn btn-secondary">
@@ -189,79 +210,69 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
         </div>
 
-        <!-- Card do Formulário -->
-        <div class="card card-form">
-            <div class="card-body">
-                <?php if (isset($_SESSION['erro'])): ?>
-                    <div class="alert alert-danger"><?= $_SESSION['erro'] ?></div>
-                    <?php unset($_SESSION['erro']); ?>
-                <?php endif; ?>
-                
-                <form method="post" enctype="multipart/form-data">
-                    <div class="mb-4">
-                        <label class="form-label">Nome Completo:</label>
-                        <input type="text" name="nome" class="form-control form-control-lg" required>
+        <div class="card-form">
+            <?php if (isset($_SESSION['erro'])): ?>
+                <div class="alert alert-danger"><?= $_SESSION['erro'] ?></div>
+                <?php unset($_SESSION['erro']); ?>
+            <?php endif; ?>
+            
+            <form method="post">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="mb-4">
+                            <label class="form-label">Nome Completo:</label>
+                            <input type="text" name="nome" class="form-control" required>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Email:</label>
+                            <input type="email" name="email" class="form-control" required>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Senha:</label>
+                            <input type="password" name="senha" class="form-control" required>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Nível de Acesso:</label>
+                            <select name="nivel_acesso" class="form-select" required>
+                                <option value="admin">Administrador</option>
+                                <option value="gerente">Gerente</option>
+                                <option value="vendedor">Vendedor</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Ativo:</label>
+                            <select name="ativo" class="form-select" required>
+                                <option value="1">Ativo</option>
+                                <option value="0">Inativo</option>
+                            </select>
+                        </div>
                     </div>
                     
-                    <div class="mb-4">
-                        <label class="form-label">Email:</label>
-                        <input type="email" name="email" class="form-control form-control-lg" required>
+                    <div class="col-md-4">
+                        <div class="mb-4">
+                            <label class="form-label">Foto do Usuário:</label>
+                            <img src="../../img/usuarios/default-profile.jpg" alt="Foto do Usuário" class="current-photo">
+                            <div class="photo-actions">
+                                <label for="foto" class="btn btn-primary">
+                                    <i class="bi bi-upload"></i> Alterar Foto
+                                </label>
+                                <input type="file" id="foto" name="foto" class="d-none" accept="image/*">
+                            </div>
+                        </div>
                     </div>
-                    
-                    <div class="mb-4">
-                        <label class="form-label">Senha:</label>
-                        <input type="password" name="senha" class="form-control form-control-lg" required minlength="6">
-                        <small class="text-muted">Mínimo 6 caracteres</small>
-                    </div>
-                    
-                    <div class="mb-4">
-                        <label class="form-label">Nível de Acesso:</label>
-                        <select name="nivel_acesso" class="form-select form-select-lg" required>
-                            <option value="">Selecione um nível...</option>
-                            <option value="admin">Administrador</option>
-                            <option value="gerente">Gerente</option>
-                            <option value="vendedor">Vendedor</option>
-                        </select>
-                    </div>
-                    
-                    <div class="mb-4">
-                        <label class="form-label">Foto de Perfil:</label>
-                        <img id="photoPreview" class="photo-preview" src="#" alt="Pré-visualização">
-                        <input type="file" name="foto" id="fotoInput" class="form-control form-control-lg" accept="image/jpeg, image/png">
-                        <small class="text-muted">Formatos aceitos: JPG, PNG (Máx. 2MB)</small>
-                    </div>
-                    
-                    <div class="d-flex justify-content-end gap-3 mt-4">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-save"></i> Cadastrar Usuário
-                        </button>
-                        <a href="usuario_list.php" class="btn btn-secondary">
-                            <i class="bi bi-x-lg"></i> Cancelar
-                        </a>
-                    </div>
-                </form>
-            </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Adicionar Usuário
+                </button>
+            </form>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-    // Preview da foto selecionada
-    document.getElementById('fotoInput').addEventListener('change', function(e) {
-        const preview = document.getElementById('photoPreview');
-        const file = e.target.files[0];
-        
-        if (file) {
-            const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                preview.src = e.target.result;
-                preview.style.display = 'block';
-            }
-            
-            reader.readAsDataURL(file);
-        }
-    });
-    </script>
+    <?php include '../../templates/footer.php'; ?>
 </body>
 </html>
