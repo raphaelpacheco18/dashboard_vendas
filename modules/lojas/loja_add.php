@@ -15,21 +15,32 @@ $sucesso = '';
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $nome = $_POST['nome'] ?? '';
     $endereco = $_POST['endereco'] ?? '';
+    $telefone = $_POST['telefone'] ?? '';
+    $cep = $_POST['cep'] ?? '';
+    $cidade = $_POST['cidade'] ?? '';
+    $estado = $_POST['estado'] ?? '';
+    $status = isset($_POST['status']) ? 1 : 0;
 
     // Validação básica
     if (empty($nome) || empty($endereco)) {
-        $erro = "Por favor, preencha todos os campos!";
+        $erro = "Por favor, preencha todos os campos obrigatórios!";
     } else {
         try {
-            $sql = "INSERT INTO lojas (nome, endereco) VALUES (:nome, :endereco)";
+            $sql = "INSERT INTO lojas (nome, endereco, telefone, cep, cidade, estado, status) 
+                    VALUES (:nome, :endereco, :telefone, :cep, :cidade, :estado, :status)";
             $stmt = $pdo->prepare($sql);
             $stmt->bindParam(':nome', $nome);
             $stmt->bindParam(':endereco', $endereco);
+            $stmt->bindParam(':telefone', $telefone);
+            $stmt->bindParam(':cep', $cep);
+            $stmt->bindParam(':cidade', $cidade);
+            $stmt->bindParam(':estado', $estado);
+            $stmt->bindParam(':status', $status);
 
             if ($stmt->execute()) {
                 $sucesso = "Loja cadastrada com sucesso!";
                 // Limpar campos após sucesso
-                $nome = $endereco = '';
+                $nome = $endereco = $telefone = $cep = $cidade = $estado = '';
             }
         } catch (PDOException $e) {
             $erro = 'Erro ao cadastrar loja: ' . $e->getMessage();
@@ -120,6 +131,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         resize: vertical;
     }
     
+    select.form-control {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        background-size: 16px 12px;
+    }
+    
     .btn-primary {
         background-color: var(--primary-color);
         border: none;
@@ -169,6 +188,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         border: 1px solid #f5c6cb;
     }
     
+    .form-check {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+    
+    .form-check-input {
+        width: 18px;
+        height: 18px;
+        margin-top: 0;
+    }
+    
+    .form-check-label {
+        font-weight: 500;
+        color: var(--text-dark);
+    }
+    
     @media (max-width: 768px) {
         .main-container {
             padding: 0 10px;
@@ -204,14 +241,58 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="form-card">
             <form action="loja_add.php" method="POST">
                 <div class="form-group">
-                    <label for="nome">Nome da Loja</label>
+                    <label for="nome">Nome da Loja <span class="text-danger">*</span></label>
                     <input type="text" id="nome" name="nome" class="form-control" 
                            value="<?= htmlspecialchars($nome ?? '') ?>" required>
                 </div>
                 
                 <div class="form-group">
-                    <label for="endereco">Endereço</label>
+                    <label for="endereco">Endereço <span class="text-danger">*</span></label>
                     <textarea id="endereco" name="endereco" class="form-control" required><?= htmlspecialchars($endereco ?? '') ?></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="telefone">Telefone</label>
+                    <input type="text" id="telefone" name="telefone" class="form-control" 
+                           value="<?= htmlspecialchars($telefone ?? '') ?>">
+                </div>
+                
+                <div class="form-group">
+                    <label for="cep">CEP</label>
+                    <input type="text" id="cep" name="cep" class="form-control" 
+                           value="<?= htmlspecialchars($cep ?? '') ?>">
+                </div>
+                
+                <div class="form-group">
+                    <label for="cidade">Cidade</label>
+                    <input type="text" id="cidade" name="cidade" class="form-control" 
+                           value="<?= htmlspecialchars($cidade ?? '') ?>">
+                </div>
+                
+                <div class="form-group">
+                    <label for="estado">Estado</label>
+                    <select id="estado" name="estado" class="form-control">
+                        <option value="">Selecione</option>
+                        <?php
+                        $estados = [
+                            'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO',
+                            'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI',
+                            'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
+                        ];
+                        
+                        foreach ($estados as $uf) {
+                            $selected = (isset($estado) && $estado == $uf) ? 'selected' : '';
+                            echo "<option value=\"$uf\" $selected>$uf</option>";
+                        }
+                        ?>
+                    </select>
+                </div>
+                
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="status" id="status" checked>
+                    <label class="form-check-label" for="status">
+                        Loja ativa
+                    </label>
                 </div>
                 
                 <button type="submit" class="btn btn-primary">

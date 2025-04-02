@@ -25,13 +25,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nome = $_POST['nome'];
     $endereco = $_POST['endereco'];
     $telefone = $_POST['telefone'];
+    $cep = $_POST['cep'];
+    $cidade = $_POST['cidade'];
+    $estado = $_POST['estado'];
+    $status = isset($_POST['status']) ? 1 : 0;
 
     // Atualizar as informações da loja
-    $sql = "UPDATE lojas SET nome = :nome, endereco = :endereco, telefone = :telefone WHERE id = :id";
+    $sql = "UPDATE lojas SET 
+            nome = :nome, 
+            endereco = :endereco, 
+            telefone = :telefone,
+            cep = :cep,
+            cidade = :cidade,
+            estado = :estado,
+            status = :status 
+            WHERE id = :id";
+    
     $stmt = $pdo->prepare($sql);
     $stmt->bindParam(':nome', $nome);
     $stmt->bindParam(':endereco', $endereco);
     $stmt->bindParam(':telefone', $telefone);
+    $stmt->bindParam(':cep', $cep);
+    $stmt->bindParam(':cidade', $cidade);
+    $stmt->bindParam(':estado', $estado);
+    $stmt->bindParam(':status', $status);
     $stmt->bindParam(':id', $id);
 
     if ($stmt->execute()) {
@@ -109,7 +126,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: var(--text-dark);
         }
 
-        .form-group input[type="text"] {
+        .form-group input[type="text"],
+        .form-group select {
             width: 100%;
             padding: 10px 15px;
             border: 1px solid var(--border-color);
@@ -117,10 +135,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-size: 16px;
         }
 
-        .form-group input[type="text"]:focus {
+        .form-group input[type="text"]:focus,
+        .form-group select:focus {
             border-color: var(--primary-color);
             outline: none;
             box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .form-check {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .form-check input {
+            margin-right: 10px;
         }
 
         /* BOTÕES */
@@ -167,6 +196,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="form-group">
                     <label for="endereco">Endereço:</label>
                     <input type="text" name="endereco" value="<?php echo htmlspecialchars($loja['endereco']); ?>" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="telefone">Telefone:</label>
+                    <input type="text" name="telefone" value="<?php echo htmlspecialchars($loja['telefone']); ?>">
+                </div>
+                
+                <div class="form-group">
+                    <label for="cep">CEP:</label>
+                    <input type="text" name="cep" value="<?php echo htmlspecialchars($loja['cep']); ?>">
+                </div>
+                
+                <div class="form-group">
+                    <label for="cidade">Cidade:</label>
+                    <input type="text" name="cidade" value="<?php echo htmlspecialchars($loja['cidade']); ?>">
+                </div>
+                
+                <div class="form-group">
+                    <label for="estado">Estado:</label>
+                    <select name="estado">
+                        <option value="">Selecione</option>
+                        <?php
+                        $estados = [
+                            'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO',
+                            'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI',
+                            'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
+                        ];
+                        
+                        foreach ($estados as $uf) {
+                            $selected = ($loja['estado'] == $uf) ? 'selected' : '';
+                            echo "<option value=\"$uf\" $selected>$uf</option>";
+                        }
+                        ?>
+                    </select>
+                </div>
+                
+                <div class="form-check">
+                    <input type="checkbox" name="status" id="status" <?php echo ($loja['status'] == 1) ? 'checked' : ''; ?>>
+                    <label for="status">Loja Ativa</label>
                 </div>
                 
                 <button type="submit" class="btn btn-primary">Atualizar</button>

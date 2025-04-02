@@ -1,20 +1,35 @@
 <?php
-// Iniciar a sessão
-session_start();
+require_once '../../config/auth.php';
+require_once '../../config/database.php';
 
-// Incluir o arquivo de conexão
-require_once '../../config/database.php';  // Caminho atualizado para a pasta config
+if (!usuarioLogado()) {
+    header('Location: ../../auth/login.php');
+    exit();
+}
 
-// Consultar todos os usuários
-$stmt = $pdo->query("SELECT * FROM usuarios");
-$usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+// Consulta com todos os campos necessários
+$sql = "SELECT v.*, l.nome AS loja_nome, l.status AS loja_status 
+        FROM vendedoras v 
+        JOIN lojas l ON v.loja_id = l.id
+        ORDER BY v.nome";
+$stmt = $pdo->prepare($sql);
+$stmt->execute();
+$vendedoras = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Mensagens de feedback
+$success = $_SESSION['success'] ?? '';
+$error = $_SESSION['error'] ?? '';
+unset($_SESSION['success'], $_SESSION['error']);
 ?>
 
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Lista de Usuários</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Vendedoras</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
     :root {
         --primary-color: #3498db;
@@ -35,7 +50,7 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     
     .main-container {
-        max-width: 1200px;
+        max-width: 1400px;
         margin: 0 auto;
         padding: 0 15px;
     }
@@ -158,28 +173,69 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
         border: 1px solid #f5c6cb;
     }
     
-    .alert-warning {
-        background-color: #fff3cd;
-        color: #856404;
-        border: 1px solid #ffeeba;
+    .badge-status {
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
     }
     
-    .relations-alert {
+    .badge-active {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    
+    .badge-inactive {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+    
+    .badge-loja-inactive {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+    
+    .text-truncate {
+        max-width: 200px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .cpf-mask {
+        font-family: monospace;
+    }
+    
+    .comissao-badge {
         background-color: #e2e3e5;
-        border-color: #d3d6d8;
         color: #383d41;
+        padding: 3px 8px;
+        border-radius: 10px;
+        font-size: 0.8rem;
+    }
+    
+    @media (max-width: 1200px) {
+        .responsive-table td:nth-child(6), /* CPF */
+        .responsive-table th:nth-child(6) {
+            display: none;
+        }
     }
     
     @media (max-width: 992px) {
-        .responsive-table td:nth-child(5),
+        .responsive-table td:nth-child(5), /* Comissão */
         .responsive-table th:nth-child(5),
-        .responsive-table td:nth-child(4),
-        .responsive-table th:nth-child(4) {
+        .responsive-table td:nth-child(7), /* Status */
+        .responsive-table th:nth-child(7) {
             display: none;
         }
     }
     
     @media (max-width: 768px) {
+        .responsive-table td:nth-child(4), /* Telefone */
+        .responsive-table th:nth-child(4) {
+            display: none;
+        }
+        
         .header-actions {
             flex-direction: column;
             align-items: flex-start;
@@ -188,66 +244,136 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </style>
 </head>
 <body>
-
-<?php
-    // Incluir o cabeçalho
-    include('../../templates/header.php');  // Verifique o caminho
-?>
-
-<main class="main-container">
-    <div class="header-actions">
-        <div class="page-title">
-            <i class="fas fa-users"></i>
-            Lista de Usuários
+    <?php include '../../templates/header.php'; ?>
+    
+    <div class="main-container">
+        <div class="header-actions">
+            <h2 class="page-title">
+                <i class="bi bi-people-fill"></i> Lista de Vendedoras
+            </h2>
+            <div>
+                <?php if ($_SESSION['nivel_acesso'] === 'admin' || $_SESSION['nivel_acesso'] === 'gerente'): ?>
+                <a href="vendedora_add.php" class="btn btn-action-primary">
+                    <i class="bi bi-plus-lg"></i> Nova Vendedora
+                </a>
+                <?php endif; ?>
+            </div>
         </div>
-        <a href="usuario_add.php" class="btn-action-primary">
-            <i class="fas fa-plus"></i> Adicionar Novo Usuário
-        </a>
+
+        <?php if ($success): ?>
+            <div class="alert alert-success">
+                <i class="bi bi-check-circle-fill"></i> <?= htmlspecialchars($success) ?>
+            </div>
+        <?php endif; ?>
+        
+        <?php if (is_array($error) && $error['type'] === 'has_relations'): ?>
+            <div class="alert alert-warning">
+                <h5><i class="bi bi-exclamation-triangle"></i> Não foi possível excluir</h5>
+                <p>A vendedora <strong><?= htmlspecialchars($error['vendedora_nome']) ?></strong> possui 
+                <strong><?= $error['total_vendas'] ?> venda(s)</strong> registrada(s).</p>
+                <hr>
+                <p class="mb-0">Para excluir, primeiro transfira as vendas para outra vendedora.</p>
+            </div>
+        <?php elseif (is_array($error) && $error['type'] === 'system_error'): ?>
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle-fill"></i> <?= htmlspecialchars($error['message']) ?>
+            </div>
+        <?php elseif ($error): ?>
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle-fill"></i> <?= htmlspecialchars($error) ?>
+            </div>
+        <?php endif; ?>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover responsive-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nome</th>
+                                <th>E-mail</th>
+                                <th>Telefone</th>
+                                <th>Comissão</th>
+                                <th>CPF</th>
+                                <th>Status</th>
+                                <th>Loja</th>
+                                <th class="text-end">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (empty($vendedoras)): ?>
+                                <tr>
+                                    <td colspan="9" class="text-center py-4 text-muted">
+                                        Nenhuma vendedora cadastrada
+                                    </td>
+                                </tr>
+                            <?php else: ?>
+                                <?php foreach ($vendedoras as $vendedora): ?>
+                                <tr>
+                                    <td><?= $vendedora['id'] ?></td>
+                                    <td>
+                                        <?= htmlspecialchars($vendedora['nome']) ?>
+                                        <?php if ($vendedora['data_nascimento']): ?>
+                                            <br>
+                                            <small class="text-muted">
+                                                <?= date('d/m/Y', strtotime($vendedora['data_nascimento'])) ?>
+                                            </small>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="text-truncate" title="<?= htmlspecialchars($vendedora['email']) ?>">
+                                        <?= htmlspecialchars($vendedora['email']) ?>
+                                    </td>
+                                    <td><?= htmlspecialchars($vendedora['telefone']) ?></td>
+                                    <td>
+                                        <span class="comissao-badge">
+                                            <?= number_format($vendedora['comissao'], 2, ',', '.') ?>%
+                                        </span>
+                                    </td>
+                                    <td class="cpf-mask">
+                                        <?= $vendedora['cpf'] ? substr($vendedora['cpf'], 0, 3) . '.' . 
+                                            substr($vendedora['cpf'], 3, 3) . '.' . 
+                                            substr($vendedora['cpf'], 6, 3) . '-' . 
+                                            substr($vendedora['cpf'], 9, 2) : '' ?>
+                                    </td>
+                                    <td>
+                                        <span class="badge-status <?= $vendedora['status'] ? 'badge-active' : 'badge-inactive' ?>">
+                                            <?= $vendedora['status'] ? 'Ativa' : 'Inativa' ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <?= htmlspecialchars($vendedora['loja_nome']) ?>
+                                        <?php if (!$vendedora['loja_status']): ?>
+                                            <span class="badge-loja-inactive badge-status">Loja Inativa</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="vendedora_edit.php?id=<?= $vendedora['id'] ?>" 
+                                               class="btn btn-outline-primary"
+                                               title="Editar">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <?php if ($_SESSION['nivel_acesso'] === 'admin' || $_SESSION['nivel_acesso'] === 'gerente'): ?>
+                                            <a href="vendedora_delete.php?id=<?= $vendedora['id'] ?>" 
+                                               class="btn btn-outline-danger"
+                                               title="Excluir"
+                                               onclick="return confirm('Tem certeza que deseja excluir esta vendedora?');">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                            <?php endif; ?>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="table-responsive">
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nome</th>
-                    <th>Email</th>
-                    <th>Nível de Acesso</th>
-                    <th>Foto</th>
-                    <th>Ativo</th>
-                    <th>Ações</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($usuarios as $usuario): ?>
-                    <tr>
-                        <td><?= $usuario['id'] ?></td>
-                        <td><?= $usuario['nome'] ?></td>
-                        <td><?= $usuario['email'] ?></td>
-                        <td><?= ucfirst($usuario['nivel_acesso']) ?></td>
-                        <td>
-                            <img src="<?= $usuario['foto'] ?>" alt="Foto de <?= $usuario['nome'] ?>" width="40" height="40" style="border-radius: 50%;">
-                        </td>
-                        <td>
-                            <span class="badge <?= $usuario['ativo'] ? 'badge-ativo' : 'badge-inativo' ?>">
-                                <?= $usuario['ativo'] ? 'Ativo' : 'Desativado' ?>
-                            </span>
-                        </td>
-                        <td>
-                            <a href="usuario_edit.php?id=<?= $usuario['id'] ?>" class="btn btn-outline-primary btn-sm">Editar</a>
-                            <a href="usuario_delete.php?id=<?= $usuario['id'] ?>" class="btn btn-outline-danger btn-sm">Excluir</a>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-    </div>
-</main>
-
-<?php
-    // Incluir o rodapé
-    include('../../templates/footer.php');  // Verifique o caminho
-?>
-
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

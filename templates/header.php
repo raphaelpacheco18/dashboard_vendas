@@ -1,6 +1,6 @@
 <?php
 /**
- * HEADER COM CONTROLE DE ACESSO
+ * HEADER COM CONTROLE DE ACESSO E MENU CENTRALIZADO COMPLETO
  * Níveis: admin, gerente, vendedor
  */
 
@@ -47,135 +47,137 @@ if (in_array('modules', $uri_segments)) {
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css" rel="stylesheet">
+    
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
-    <!-- CSS Local -->
-    <link href="<?= $base_url ?>assets/css/templates.css" rel="stylesheet">
-    
     <style>
-        :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #3498db;
-            --hover-color: rgba(255,255,255,0.15);
-            --active-color: rgba(255,255,255,0.25);
-            --text-light: #f8f9fa;
-            --shadow: 0 2px 10px rgba(0,0,0,0.1);
+    :root {
+        --primary-color: #4e73df;
+        --secondary-color: #224abe;
+        --success-color: #1cc88a;
+        --info-color: #36b9cc;
+        --warning-color: #f6c23e;
+        --danger-color: #e74a3b;
+        --light-color: #f8f9fc;
+        --dark-color: #5a5c69;
+        --card-radius: 0.35rem;
+        --shadow: 0 .15rem 1.75rem 0 rgba(58,59,69,.15);
+    }
+    
+    body {
+        padding-top: 70px;
+        background-color: var(--light-color);
+        font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    
+    /* Navbar Gradient */
+    .navbar {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        box-shadow: var(--shadow);
+        padding: 0.5rem 1rem;
+    }
+    
+    .navbar-brand {
+        font-weight: 600;
+        font-size: 1.25rem;
+        display: flex;
+        align-items: center;
+        position: absolute;
+        left: 20px;
+    }
+    
+    .navbar-brand i {
+        margin-right: 0.5rem;
+    }
+    
+    /* Menu Centralizado */
+    .navbar-nav.center-menu {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        justify-content: center;
+    }
+    
+    /* Menu Items */
+    .nav-link {
+        color: white !important;
+        padding: 0.5rem 1rem;
+        margin: 0 0.25rem;
+        border-radius: var(--card-radius);
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+    }
+    
+    .nav-link i {
+        margin-right: 0.5rem;
+    }
+    
+    .nav-link:hover {
+        background-color: rgba(255,255,255,0.1);
+        transform: translateY(-1px);
+    }
+    
+    .nav-link.active {
+        background-color: rgba(255,255,255,0.2);
+        font-weight: 500;
+    }
+    
+    /* Dropdown Menu */
+    .dropdown-menu {
+        border: none;
+        border-radius: var(--card-radius);
+        box-shadow: var(--shadow);
+        padding: 0.5rem 0;
+    }
+    
+    .dropdown-item {
+        padding: 0.5rem 1.5rem;
+        transition: all 0.2s;
+    }
+    
+    .dropdown-item:hover {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white !important;
+    }
+    
+    .dropdown-divider {
+        margin: 0.25rem 0;
+    }
+    
+    /* User Profile */
+    .profile-img {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid rgba(255,255,255,0.3);
+    }
+    
+    /* Responsividade */
+    @media (max-width: 992px) {
+        .navbar-brand {
+            position: static;
         }
         
-        body {
-            padding-top: 70px;
-            background-color: #f8f9fa;
-            font-family: 'Segoe UI', sans-serif;
+        .navbar-nav.center-menu {
+            position: static;
+            transform: none;
+            left: auto;
+            display: block;
+            text-align: center;
         }
         
-        .navbar {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            box-shadow: var(--shadow);
-        }
-        
-        .nav-link {
-            transition: all 0.2s ease;
-            margin: 0 5px;
-            border-radius: 4px;
-            padding: 8px 12px;
-            color: var(--text-light);
-            display: flex;
-            align-items: center;
-        }
-        
-        .nav-link:hover {
-            background: var(--hover-color);
-            transform: translateY(-2px);
-        }
-        
-        .nav-link.active {
-            background: var(--active-color);
-            font-weight: 500;
-            box-shadow: var(--shadow);
-        }
-        
-        .nav-link i {
-            margin-right: 8px;
-            font-size: 0.9em;
+        .nav-item {
+            margin-bottom: 0.25rem;
         }
         
         .dropdown-menu {
-            border-radius: 8px;
-            border: none;
-            box-shadow: var(--shadow);
-        }
-        
-        .dropdown-item {
-            transition: all 0.2s;
-            padding: 8px 16px;
-        }
-        
-        .dropdown-item:hover {
-            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
-            color: white;
-        }
-        
-        .profile-img {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid rgba(255,255,255,0.3);
-        }
-        
-        .notification-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            font-size: 10px;
-            padding: 3px 6px;
-        }
-        
-        @media (max-width: 992px) {
-            .navbar-collapse {
-                padding-top: 15px;
-            }
-            
-            .dropdown-menu {
-                margin-top: 5px;
-                margin-bottom: 10px;
-            }
-        }
-        .navbar {
-        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-        box-shadow: var(--shadow);
-        padding: 0.5rem 1rem; /* Adicione padding para melhor espaçamento */
-    }
-
-    .navbar-brand {
-        margin-right: auto; /* Empurra a logo para a esquerda */
-    }
-
-    .navbar-nav.me-auto {
-        margin: 0 auto; /* Centraliza os itens do menu principal */
-        display: flex;
-        justify-content: center;
-        flex-grow: 1;
-    }
-
-    .navbar-nav:last-child {
-        margin-left: auto; /* Empurra o menu do usuário para a direita */
-    }
-
-    /* Ajuste para mobile */
-    @media (max-width: 992px) {
-        .navbar-collapse {
-            padding-top: 15px;
-        }
-        
-        .navbar-nav.me-auto {
-            margin: 0;
-            flex-direction: column;
-        }
-        
-        .navbar-nav:last-child {
-            margin-left: 0;
+            text-align: center;
         }
     }
     </style>
@@ -186,8 +188,8 @@ if (in_array('modules', $uri_segments)) {
         <div class="container-fluid">
             <!-- Brand -->
             <a class="navbar-brand" href="<?= $base_url ?>index.php">
-                <i class="fas fa-chart-line me-2"></i>
-                Dashboard Vendas
+                <i class="fas fa-chart-line"></i>
+                <span class="d-none d-sm-inline">Dashboard Vendas</span>
             </a>
             
             <!-- Toggle Mobile -->
@@ -197,11 +199,13 @@ if (in_array('modules', $uri_segments)) {
             
             <!-- Itens do Menu -->
             <div class="collapse navbar-collapse" id="mainMenu">
-                <ul class="navbar-nav me-auto">
+                <!-- Menu Centralizado -->
+                <ul class="navbar-nav center-menu">
                     <!-- Dashboard (todos) -->
                     <li class="nav-item">
                         <a class="nav-link <?= ($pagina_atual == 'index.php') ? 'active' : '' ?>" href="<?= $base_url ?>index.php">
-                            <i class="fas fa-tachometer-alt"></i> Geral
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span class="d-none d-md-inline">Geral</span>
                         </a>
                     </li>
                     
@@ -213,123 +217,129 @@ if (in_array('modules', $uri_segments)) {
                            role="button" 
                            data-bs-toggle="dropdown"
                            aria-expanded="false">
-                            <i class="fas fa-cash-register"></i> Vendas
+                            <i class="fas fa-cash-register"></i>
+                            <span class="d-none d-md-inline">Vendas</span>
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item <?= (basename($_SERVER['PHP_SELF']) == 'sales.php' ? 'active' : '') ?>" href="<?= $base_url ?>modules/sales/sales.php"><i class="fas fa-list me-2"></i>Listar Vendas</a></li>
-                            <li><a class="dropdown-item <?= (basename($_SERVER['PHP_SELF']) == 'sales_add.php' ? 'active' : '') ?>" href="<?= $base_url ?>modules/sales/sales_add.php"><i class="fas fa-plus-circle me-2"></i>Nova Venda</a></li>
+                            <li><a class="dropdown-item <?= (basename($_SERVER['PHP_SELF'])) == 'sales.php' ? 'active' : '' ?>" href="<?= $base_url ?>modules/sales/sales.php"><i class="fas fa-list me-2"></i>Listar Vendas</a></li>
+                            <li><a class="dropdown-item <?= (basename($_SERVER['PHP_SELF'])) == 'sales_add.php' ? 'active' : '' ?>" href="<?= $base_url ?>modules/sales/sales_add.php"><i class="fas fa-plus-circle me-2"></i>Nova Venda</a></li>
                             <?php if(in_array($usuario['nivel'], ['admin', 'gerente'])): ?>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item <?= (basename($_SERVER['PHP_SELF']) == 'sales_report.php' ? 'active' : '') ?>" href="<?= $base_url ?>modules/sales/sales_report.php"><i class="fas fa-chart-bar me-2"></i>Relatórios</a></li>
+                            <li><a class="dropdown-item <?= (basename($_SERVER['PHP_SELF'])) == 'sales_report.php' ? 'active' : '' ?>" href="<?= $base_url ?>modules/sales/sales_report.php"><i class="fas fa-chart-bar me-2"></i>Relatórios</a></li>
                             <?php endif; ?>
                         </ul>
                     </li>
                     
                     <!-- Produtos (admin e gerente) -->
                     <?php if(in_array($usuario['nivel'], ['admin', 'gerente'])): ?>
-<li class="nav-item dropdown">
-    <a class="nav-link dropdown-toggle <?= ($modulo_atual == 'products') ? 'active' : '' ?>" 
-       href="<?= $base_url ?>modules/products/products.php"
-       id="productsDropdown" 
-       role="button" 
-       data-bs-toggle="dropdown"
-       aria-expanded="false">
-        <i class="fas fa-boxes"></i> Produtos
-    </a>
-    <ul class="dropdown-menu">
-        <li>
-            <a class="dropdown-item <?= (basename($_SERVER['PHP_SELF']) == 'products.php' ? 'active' : '') ?>" 
-               href="<?= $base_url ?>modules/products/products.php">
-                <i class="fas fa-list me-2"></i> Listar Produtos
-            </a>
-        </li>
-        <li>
-            <a class="dropdown-item <?= (basename($_SERVER['PHP_SELF']) == 'product_add.php' ? 'active' : '') ?>" 
-               href="<?= $base_url ?>modules/products/product_add.php">
-                <i class="fas fa-plus-circle me-2"></i> Adicionar Produto
-            </a>
-        </li>
-        <?php if($usuario['nivel'] === 'admin'): ?>
-        <li><hr class="dropdown-divider"></li>
-        <li>
-            <a class="dropdown-item <?= (basename($_SERVER['PHP_SELF']) == 'inventory.php' ? 'active' : '') ?>" 
-               href="<?= $base_url ?>modules/products/inventory.php">
-                <i class="fas fa-warehouse me-2"></i> Gerenciar Estoque
-            </a>
-        </li>
-        <?php endif; ?>
-    </ul>
-</li>
-<?php endif; ?>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle <?= ($modulo_atual == 'products') ? 'active' : '' ?>" 
+                           href="<?= $base_url ?>modules/products/products.php"
+                           id="productsDropdown" 
+                           role="button" 
+                           data-bs-toggle="dropdown"
+                           aria-expanded="false">
+                            <i class="fas fa-boxes"></i>
+                            <span class="d-none d-md-inline">Produtos</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item <?= (basename($_SERVER['PHP_SELF'])) == 'products.php' ? 'active' : '' ?>" 
+                                   href="<?= $base_url ?>modules/products/products.php">
+                                    <i class="fas fa-list me-2"></i> Listar Produtos
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item <?= (basename($_SERVER['PHP_SELF'])) == 'product_add.php' ? 'active' : '' ?>" 
+                                   href="<?= $base_url ?>modules/products/product_add.php">
+                                    <i class="fas fa-plus-circle me-2"></i> Adicionar Produto
+                                </a>
+                            </li>
+                            <?php if($usuario['nivel'] === 'admin'): ?>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item <?= (basename($_SERVER['PHP_SELF'])) == 'inventory.php' ? 'active' : '' ?>" 
+                                   href="<?= $base_url ?>modules/products/inventory.php">
+                                    <i class="fas fa-warehouse me-2"></i> Gerenciar Estoque
+                                </a>
+                            </li>
+                            <?php endif; ?>
+                        </ul>
+                    </li>
+                    <?php endif; ?>
                     
                     <!-- Lojas (admin e gerente) -->
                     <?php if(in_array($usuario['nivel'], ['admin', 'gerente'])): ?>
-<li class="nav-item dropdown">
-    <a class="nav-link dropdown-toggle <?= ($modulo_atual == 'lojas') ? 'active' : '' ?>" 
-       href="<?= $base_url ?>modules/lojas/lojas.php"
-       id="storesDropdown" 
-       role="button" 
-       data-bs-toggle="dropdown"
-       aria-expanded="false">
-        <i class="fas fa-store"></i> Lojas
-    </a>
-    <ul class="dropdown-menu">
-        <li><a class="dropdown-item <?= (basename($_SERVER['PHP_SELF']) == 'lojas.php' ? 'active' : '') ?>" href="<?= $base_url ?>modules/lojas/lojas.php"><i class="fas fa-list me-2"></i> Listar Lojas</a></li>
-        <?php if($usuario['nivel'] === 'admin'): ?>
-        <li><a class="dropdown-item <?= (basename($_SERVER['PHP_SELF']) == 'loja_add.php' ? 'active' : '') ?>" href="<?= $base_url ?>modules/lojas/loja_add.php"><i class="fas fa-plus-circle me-2"></i> Adicionar Loja</a>
-        <li><hr class="dropdown-divider"></li>
-        <li><a class="dropdown-item <?= (basename($_SERVER['PHP_SELF']) == 'lojas.php' ? 'active' : '') ?>" href="<?= $base_url ?>modules/metas/metas_list.php"><i class="fas fa-list me-2"></i> Metas</a></li>
-        <?php endif; ?>
-    </ul>
-</li>
-<?php endif; ?>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle <?= ($modulo_atual == 'lojas') ? 'active' : '' ?>" 
+                           href="<?= $base_url ?>modules/lojas/lojas.php"
+                           id="storesDropdown" 
+                           role="button" 
+                           data-bs-toggle="dropdown"
+                           aria-expanded="false">
+                            <i class="fas fa-store"></i>
+                            <span class="d-none d-md-inline">Lojas</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item <?= (basename($_SERVER['PHP_SELF'])) == 'lojas.php' ? 'active' : '' ?>" href="<?= $base_url ?>modules/lojas/lojas.php"><i class="fas fa-list me-2"></i> Listar Lojas</a></li>
+                            <?php if($usuario['nivel'] === 'admin'): ?>
+                            <li><a class="dropdown-item <?= (basename($_SERVER['PHP_SELF'])) == 'loja_add.php' ? 'active' : '' ?>" href="<?= $base_url ?>modules/lojas/loja_add.php"><i class="fas fa-plus-circle me-2"></i> Adicionar Loja</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item <?= (basename($_SERVER['PHP_SELF'])) == 'metas_list.php' ? 'active' : '' ?>" href="<?= $base_url ?>modules/metas/metas_list.php"><i class="fas fa-bullseye me-2"></i> Metas</a></li>
+                            <?php endif; ?>
+                        </ul>
+                    </li>
+                    <?php endif; ?>
                     
                     <!-- Equipe (admin) -->
                     <?php if($usuario['nivel'] === 'admin'): ?>
-<li class="nav-item dropdown">
-    <a class="nav-link dropdown-toggle <?= ($modulo_atual == 'team') ? 'active' : '' ?>" 
-       href="<?= $base_url ?>modules/team/vendedoras_list.php"
-       id="teamDropdown" 
-       role="button" 
-       data-bs-toggle="dropdown"
-       aria-expanded="false">
-        <i class="fas fa-users"></i> Equipe
-    </a>
-    <ul class="dropdown-menu">
-        <li><a class="dropdown-item <?= (basename($_SERVER['PHP_SELF']) == 'vendedoras_list.php' ? 'active' : '') ?>" href="<?= $base_url ?>modules/team/vendedoras_list.php"><i class="fas fa-list me-2"></i>Vendedoras</a></li>
-        <li><a class="dropdown-item <?= (basename($_SERVER['PHP_SELF']) == 'vendedoras_add.php' ? 'active' : '') ?>" href="<?= $base_url ?>modules/team/vendedora_add.php"><i class="fas fa-user-plus me-2"></i>Adicionar Vendedora</a></li>
-    </ul>
-</li>
-<?php endif; ?>
-
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle <?= ($modulo_atual == 'team') ? 'active' : '' ?>" 
+                           href="<?= $base_url ?>modules/team/vendedoras_list.php"
+                           id="teamDropdown" 
+                           role="button" 
+                           data-bs-toggle="dropdown"
+                           aria-expanded="false">
+                            <i class="fas fa-users"></i>
+                            <span class="d-none d-md-inline">Equipe</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item <?= (basename($_SERVER['PHP_SELF'])) == 'vendedoras_list.php' ? 'active' : '' ?>" href="<?= $base_url ?>modules/team/vendedoras_list.php"><i class="fas fa-list me-2"></i>Vendedoras</a></li>
+                            <li><a class="dropdown-item <?= (basename($_SERVER['PHP_SELF'])) == 'vendedora_add.php' ? 'active' : '' ?>" href="<?= $base_url ?>modules/team/vendedora_add.php"><i class="fas fa-user-plus me-2"></i>Adicionar Vendedora</a></li>
+                        </ul>
+                    </li>
+                    <?php endif; ?>
+                    
                     <!-- Relatórios (admin e gerente) -->
                     <?php if(in_array($usuario['nivel'], ['admin', 'gerente'])): ?>
                     <li class="nav-item">
                         <a class="nav-link <?= ($modulo_atual == 'reports') ? 'active' : '' ?>" href="<?= $base_url ?>modules/reports/">
-                            <i class="fas fa-chart-pie"></i> Relatórios
+                            <i class="fas fa-chart-pie"></i>
+                            <span class="d-none d-md-inline">Relatórios</span>
                         </a>
                     </li>
                     <?php endif; ?>
                     
-                    <!-- Item de Usuários separado -->
-<?php if($usuario['nivel'] === 'admin'): ?>
-<li class="nav-item">
-    <a class="nav-link <?= ($modulo_atual == 'usuarios') ? 'active' : '' ?>" href="<?= $base_url ?>modules/usuarios/usuario_list.php">
-        <i class="fas fa-user-cog"></i> Usuários
-    </a>
-</li>
-<?php endif; ?>>
+                    <!-- Usuários (admin) -->
+                    <?php if($usuario['nivel'] === 'admin'): ?>
+                    <li class="nav-item">
+                        <a class="nav-link <?= ($modulo_atual == 'usuarios') ? 'active' : '' ?>" href="<?= $base_url ?>modules/usuarios/usuario_list.php">
+                            <i class="fas fa-user-cog"></i>
+                            <span class="d-none d-md-inline">Usuários</span>
+                        </a>
+                    </li>
+                    <?php endif; ?>
                 </ul>
                 
-                <!-- Menu do Usuário -->
-                <ul class="navbar-nav">
+                <!-- Menu do Usuário (direita) -->
+                <ul class="navbar-nav ms-auto">
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
                             <img src="<?= $fotoPath ?>"
                                  class="profile-img me-2"
                                  alt="Foto de <?= $usuario['nome'] ?>"
                                  onerror="this.onerror=null;this.src='<?= $fotoPadrao ?>'">
-                            <?= $usuario['nome'] ?>
+                            <span class="d-none d-lg-inline"><?= $usuario['nome'] ?></span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="#"><i class="fas fa-user-circle me-2"></i>Meu Perfil</a></li>
@@ -344,9 +354,3 @@ if (in_array('modules', $uri_segments)) {
             </div>
         </div>
     </nav>
-    
-    <!-- Container Principal -->
-    <main class="container-fluid mt-4">
-        <!-- Seu conteúdo aqui -->
-    </main>
- 

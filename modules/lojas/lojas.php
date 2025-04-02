@@ -8,7 +8,10 @@ if (!usuarioLogado()) {
 }
 
 // Consultar todas as lojas
-$sql = "SELECT * FROM lojas ORDER BY nome";
+$sql = "SELECT id, nome, endereco, telefone, cep, cidade, estado, status, 
+               DATE_FORMAT(data_criacao, '%d/%m/%Y %H:%i') as data_formatada 
+        FROM lojas 
+        ORDER BY nome";
 $stmt = $pdo->prepare($sql);
 $stmt->execute();
 $lojas = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -46,7 +49,7 @@ $error = $_GET['error'] ?? '';
     }
     
     .main-container {
-        max-width: 1200px;
+        max-width: 1400px;
         margin: 0 auto;
         padding: 0 15px;
     }
@@ -175,9 +178,44 @@ $error = $_GET['error'] ?? '';
         border: 1px solid #f5c6cb;
     }
     
+    .badge-status {
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    .badge-active {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    
+    .badge-inactive {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+    
+    .text-truncate {
+        max-width: 200px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    @media (max-width: 992px) {
+        .responsive-table td:nth-child(5), /* Estado */
+        .responsive-table th:nth-child(5),
+        .responsive-table td:nth-child(6), /* CEP */
+        .responsive-table th:nth-child(6) {
+            display: none;
+        }
+    }
+    
     @media (max-width: 768px) {
-        .responsive-table td:nth-child(4), /* Data */
-        .responsive-table th:nth-child(4) {
+        .responsive-table td:nth-child(4), /* Telefone */
+        .responsive-table th:nth-child(4),
+        .responsive-table td:nth-child(7), /* Status */
+        .responsive-table th:nth-child(7) {
             display: none;
         }
     }
@@ -222,6 +260,10 @@ $error = $_GET['error'] ?? '';
                                 <th>ID</th>
                                 <th>Nome</th>
                                 <th>Endereço</th>
+                                <th>Telefone</th>
+                                <th>Estado</th>
+                                <th>CEP</th>
+                                <th>Status</th>
                                 <th>Criação</th>
                                 <th class="text-end">Ações</th>
                             </tr>
@@ -229,7 +271,7 @@ $error = $_GET['error'] ?? '';
                         <tbody>
                             <?php if (empty($lojas)): ?>
                                 <tr>
-                                    <td colspan="5" class="text-center py-4 text-muted">
+                                    <td colspan="9" class="text-center py-4 text-muted">
                                         Nenhuma loja cadastrada
                                     </td>
                                 </tr>
@@ -238,8 +280,18 @@ $error = $_GET['error'] ?? '';
                                 <tr>
                                     <td><?= $loja['id'] ?></td>
                                     <td><?= htmlspecialchars($loja['nome']) ?></td>
-                                    <td><?= htmlspecialchars($loja['endereco']) ?></td>
-                                    <td><?= date('d/m/Y', strtotime($loja['data_criacao'])) ?></td>
+                                    <td class="text-truncate" title="<?= htmlspecialchars($loja['endereco']) ?>">
+                                        <?= htmlspecialchars($loja['endereco']) ?>
+                                    </td>
+                                    <td><?= htmlspecialchars($loja['telefone']) ?></td>
+                                    <td><?= htmlspecialchars($loja['estado']) ?></td>
+                                    <td><?= htmlspecialchars($loja['cep']) ?></td>
+                                    <td>
+                                        <span class="badge-status <?= $loja['status'] ? 'badge-active' : 'badge-inactive' ?>">
+                                            <?= $loja['status'] ? 'Ativo' : 'Inativo' ?>
+                                        </span>
+                                    </td>
+                                    <td><?= $loja['data_formatada'] ?></td>
                                     <td class="text-end">
                                         <div class="btn-group btn-group-sm">
                                             <a href="loja_edit.php?id=<?= $loja['id'] ?>" 
